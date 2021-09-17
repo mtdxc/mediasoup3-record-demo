@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.4",
     "mediasoup": "^3.4.8",
     "shelljs": "^0.8.3",
     "uuid": "^3.4.0",

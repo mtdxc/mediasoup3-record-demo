@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('https');
 const WebSocket = require('ws');
 const uuidv1 = require('uuid/v1');
-
+const express = require('express');
 const config = require('./config');
 const FFmpeg = require('./ffmpeg');
 const GStreamer = require('./gstreamer');
@@ -19,19 +19,41 @@ const {
 
 const PROCESS_NAME = process.env.PROCESS_NAME || 'FFmpeg';
 const SERVER_PORT = process.env.SERVER_PORT || 3000;
+
+let expressApp;
+function runExpressApp() {
+  expressApp = express();
+  expressApp.use(express.json());
+  console.log(__dirname);
+  expressApp.use(express.static(__dirname+"/dist"));
+
+  expressApp.use((error, req, res, next) => {
+    if (error) {
+      console.warn('Express app error,', error.message);
+      error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
+      res.statusMessage = error.message;
+      res.status(error.status).send(String(error));
+    } else {
+      next();
+    }
+  });
+}
+
 const HTTPS_OPTIONS = Object.freeze({
   cert: fs.readFileSync('./ssl/server.crt'),
   key: fs.readFileSync('./ssl/server.key')
 });
 
-const httpsServer = https.createServer(HTTPS_OPTIONS);
+runExpressApp();
+const httpsServer = https.createServer(HTTPS_OPTIONS, expressApp);
 const wss = new WebSocket.Server({ server: httpsServer });
 const peers = new Map();
 
 let router;
 
+
 wss.on('connection', async (socket, request) => {
-  console.log('new socket connection [ip%s]', request.headers['x-forwared-for'] || request.headers.origin);
+  console.log('new socket connection [ip: %s]', request.headers['x-forwared-for'] || request.headers.origin);
 
   try {
     const sessionId = uuidv1();

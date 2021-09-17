@@ -28,7 +28,7 @@ module.exports = class FFmpeg {
       this._process.stderr.setEncoding('utf-8');
 
       this._process.stderr.on('data', data =>
-        console.log('ffmpeg::process::data [data:%o]', data)
+        console.log('ffmpeg stderr: %s', data)
       );
     }
 
@@ -36,25 +36,25 @@ module.exports = class FFmpeg {
       this._process.stdout.setEncoding('utf-8');
 
       this._process.stdout.on('data', data => 
-        console.log('ffmpeg::process::data [data:%o]', data)
+        console.log('ffmpeg stdout: %s', data)
       );
     }
 
     this._process.on('message', message =>
-      console.log('ffmpeg::process::message [message:%o]', message)
+      console.log('ffmpeg message: %s', message)
     );
 
     this._process.on('error', error =>
-      console.error('ffmpeg::process::error [error:%o]', error)
+      console.error('ffmpeg error: %s', error)
     );
 
     this._process.once('close', () => {
-      console.log('ffmpeg::process::close');
+      console.log('ffmpeg close');
       this._observer.emit('process-close');
     });
 
     sdpStream.on('error', error =>
-      console.error('sdpStream::error [error:%o]', error)
+      console.error('sdpStream error: %o', error)
     );
 
     // Pipe sdp stream to the ffmpeg process
